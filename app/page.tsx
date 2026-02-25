@@ -7,7 +7,9 @@ import { FaStore } from "react-icons/fa";
 export default async function Home() {
   await connectDB();
 
-  const products = await Product.find({ isDelete: false }).lean();
+  const products = await Product.find({ isDelete: false })
+  .sort({ createdAt: -1 })
+  .lean();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
