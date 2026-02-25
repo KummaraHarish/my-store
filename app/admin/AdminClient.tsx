@@ -26,7 +26,6 @@ export default function AdminClient() {
     fetchProducts();
   }, []);
 
-  // Reset to page 1 when searching
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
@@ -113,7 +112,7 @@ export default function AdminClient() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 text-gray-900">
       <Toaster position="top-right" />
 
       {/* Sidebar */}
@@ -132,8 +131,9 @@ export default function AdminClient() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-8 text-gray-800 bg-gray-50">
-        <h1 className="text-3xl font-bold mb-6">
+      <main className="flex-1 p-4 md:p-8 bg-gray-50">
+
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
           Manage Products
         </h1>
 
@@ -143,18 +143,21 @@ export default function AdminClient() {
           placeholder="Search product..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="mb-6 border px-4 py-2 rounded-lg w-full md:w-1/3"
+          className="mb-6 border px-4 py-2 rounded-lg w-full md:w-1/3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
         {/* Form */}
-        <div className="bg-white p-6 rounded-xl shadow mb-8">
-          <form onSubmit={handleSubmit} className="grid md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow mb-8">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col md:grid md:grid-cols-3 gap-4"
+          >
             <input
               type="text"
               placeholder="Product Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border px-4 py-2 rounded-lg"
+              className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400"
               required
             />
 
@@ -163,7 +166,7 @@ export default function AdminClient() {
               placeholder="Price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="border px-4 py-2 rounded-lg"
+              className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400"
               required
             />
 
@@ -176,58 +179,62 @@ export default function AdminClient() {
                   setImagePreview(URL.createObjectURL(file));
                 }
               }}
-              className="border px-4 py-2 rounded-lg"
+              className="border px-3 py-2 rounded-lg"
             />
 
             {imagePreview && (
               <img
                 src={imagePreview}
-                className="w-32 h-32 object-cover rounded-lg"
+                className="w-24 h-24 object-cover rounded-lg"
               />
             )}
 
-            <button className="md:col-span-3 bg-indigo-600 text-white py-2 rounded-lg">
-              {editingId ? "Update" : "Add"}
+            <button className="md:col-span-3 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
+              {editingId ? "Update Product" : "Add Product"}
             </button>
           </form>
         </div>
 
         {/* Product List */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
           {paginatedProducts.map((product) => (
             <div
               key={product._id}
-              className="bg-white p-6 rounded-xl shadow"
+              className="bg-white p-4 md:p-6 rounded-xl shadow"
             >
-              {product.image && (
-                <img
-                  src={product.image}
-                  className="w-20 h-20 object-cover rounded-lg"
-                />
-              )}
+              <div className="flex gap-4">
+                {product.image && (
+                  <img
+                    src={product.image}
+                    className="w-20 h-20 object-cover rounded-lg"
+                  />
+                )}
 
-              <h3 className="font-semibold mt-3">
-                {product.name}
-              </h3>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">
+                    {product.name}
+                  </h3>
 
-              <p className="text-green-600 font-bold">
-                ₹{product.price}
-              </p>
+                  <p className="text-green-600 font-bold">
+                    ₹{product.price}
+                  </p>
 
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="bg-amber-500 text-white px-4 py-2 rounded"
-                >
-                  Edit
-                </button>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg transition"
+                    >
+                      Edit
+                    </button>
 
-                <button
-                  onClick={() => setDeleteId(product._id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded"
-                >
-                  Delete
-                </button>
+                    <button
+                      onClick={() => setDeleteId(product._id)}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -235,7 +242,7 @@ export default function AdminClient() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-8 gap-2">
+          <div className="flex justify-center mt-8 gap-2 flex-wrap">
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
@@ -271,16 +278,23 @@ export default function AdminClient() {
 
       {/* Delete Modal */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl">
-            <p>Confirm delete?</p>
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setDeleteId(null)}>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4">
+          <div className="bg-white p-6 rounded-xl w-full max-w-sm shadow-lg">
+            <p className="text-lg font-semibold">
+              Confirm delete?
+            </p>
+
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="flex-1 border py-2 rounded-lg"
+              >
                 Cancel
               </button>
+
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
               >
                 Delete
               </button>
