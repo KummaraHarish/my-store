@@ -1,14 +1,22 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
 
 // GET ALL PRODUCTS
 export async function GET() {
   await connectDB();
 
   const products = await Product.find({
-  isDelete: false,
-}).sort({ createdAt: -1 });
+    isDelete: false,
+  }).sort({ createdAt: -1 });
 
   return NextResponse.json(products);
 }
@@ -23,30 +31,32 @@ export async function POST(req: Request) {
   const price = Number(formData.get("price"));
   const file = formData.get("image") as File;
 
-  let imagePath = "";
-
-  if (file && file.size > 0) {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const fileName = Date.now() + "-" + file.name;
-
-    const fs = require("fs");
-    const path = require("path");
-
-    const uploadPath = path.join(process.cwd(), "public/uploads", fileName);
-
-    fs.writeFileSync(uploadPath, buffer);
-
-    imagePath = "/uploads/" + fileName;
+  if (!file || file.size === 0) {
+    return NextResponse.json(
+      { message: "Image is required" },
+      { status: 400 }
+    );
   }
+
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  // Upload to Cloudinary
+  const uploadResult: any = await new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ folder: "my-store" }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      })
+      .end(buffer);
+  });
 
   const product = await Product.create({
     name,
     price,
-    image: imagePath,
+    image: uploadResult.secure_url,
     isDelete: false,
   });
 
-  return Response.json(product);
+  return NextResponse.json(product, { status: 201 });
 }
